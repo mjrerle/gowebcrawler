@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"os"
-	"strconv"
 	"p2b/web_crawler/links"
 	"p2b/web_crawler/crawl"
 )
@@ -27,27 +25,25 @@ func init() {
 	flagTimeoutSecs = 100
 	sitesCrawled = 0
 	t1 = time.Now()
-	hcli = *(http.DefaultClient)
 }
 
 func main() {
-	args := os.Args[1:]
 	// Parse the flag here
-	flagUrl = *(flag.String("url", args[1], "url"))
-	linkSearchDepth, _ = strconv.Atoi(args[2])
-	linkSearchDepth = *(flag.Int("depth", linkSearchDepth , "depth"))
-	tmp, _ := strconv.ParseUint(args[3], 10, 32)
-	flagTimeoutSecs = uint(tmp)
-	flagTimeoutSecs = *(flag.Uint("timeout", flagTimeoutSecs, "timeout"))
+	flagUrl := flag.String("url", "","url")
+	linkSearchDepth := flag.Int("depth", 0 , "depth")
+	flagTimeoutSecs := flag.Uint("timeout", 0, "timeout")
+	flag.Parse()
+
+
 	// Create a new ParserXtractor
 	xtr := links.NewParserXtractor()
 	// Create a new DFS Crawler
-	dfs := crawl.NewDfsCrawler(flagTimeoutSecs)
+	dfs := crawl.NewDfsCrawler(*flagTimeoutSecs)
 	// Create a Time variable using the time package and record the time
 	t1 = time.Now()
 	// Run the Crawl function and print the length of the Crawled output and the time taken
-	linkMap, _ := dfs.Crawl(flagUrl, linkSearchDepth, xtr)
+	linkMap, _ := dfs.Crawl(*flagUrl, *linkSearchDepth, xtr)
 	sitesCrawled = len(linkMap)
 	d := time.Since(t1)
-	fmt.Println("Time taken: %d\n Length of output: %d", d.String(), sitesCrawled)
+	fmt.Printf("Time taken: %f\nLength of output: %d\n", d.Seconds(), sitesCrawled)
 }
