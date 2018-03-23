@@ -2,8 +2,8 @@ package links
 
 import (
 	"fmt"
-
 	"io"
+	"golang.org/x/net/html"
 	"net/url"
 	"strings"
 )
