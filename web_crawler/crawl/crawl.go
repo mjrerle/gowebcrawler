@@ -5,17 +5,11 @@ import (
 	"p2b/web_crawler/links"
 	"net/http"
 	"time"
+	"net"
 )
 
 type Crawler interface {
 	Crawl(url string, depth int, xtractor links.Xtractor) (map[string]links.Links, error)
-}
-
-type result struct{
-	url string
-	urls links.Links
-	err error
-	depth int
 }
 
 //generates a string of  sequence of \t chars for print prefixing
@@ -35,11 +29,11 @@ type dfsCrawler struct {
 
 func NewDfsCrawler(timeoutsec uint) *dfsCrawler {
 	tdur := time.Duration(time.Duration(timeoutsec) * time.Second)
+
 	return &dfsCrawler{
 		hcli: http.Client{
 			Timeout: tdur,
 			},
-
 	}
 }
 
@@ -47,7 +41,7 @@ func getLinksFromBody(from string, hcli http.Client, xtr links.Xtractor) (links 
 	var r *http.Response
 	r, err = hcli.Get(from)
 	if err != nil{
-		panic(err)
+		return nil, err
 	}
 	defer r.Body.Close()
 	// perform the http.get() on the url. check for error
@@ -68,14 +62,17 @@ func (c *dfsCrawler) Crawl(url string, depth int, xtr links.Xtractor) (map[strin
 	if depth > 0 {
 		if fetched[url] != true{
 			urls, err := getLinksFromBody(url, c.hcli, xtr)
-			if err != nil{
-				fmt.Println(err)
-			}
 			fetched[url] = true
-			for _, u := range urls{
-				fmt.Printf("%d: %s %s\n", depth, getPrefStr(depth), u.String())
-				c.Crawl(u.String(), depth - 1, xtr)
-				fetched[u.String()] = true
+			fmt.Printf("%s %s\n", getPrefStr(depth), url)
+
+			if err != nil{
+				fmt.Println("error: failed to crawl "+url+"")
+
+			} else {
+				for _, u := range urls{
+					c.Crawl(u.String(), depth - 1, xtr)
+					fetched[u.String()] = true
+				}
 			}
 		}
 	}

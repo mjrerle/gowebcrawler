@@ -31,9 +31,14 @@ func main() {
 	// Parse the flag here
 	flagUrl := flag.String("url", "","url")
 	linkSearchDepth := flag.Int("depth", 0 , "depth")
-	flagTimeoutSecs := flag.Uint("timeout", 0, "timeout")
+	flagTimeoutSecs := flag.Uint("timeout", 5, "timeout")
 	flag.Parse()
-
+	if *flagUrl == ""{
+		panic("Url not provided")
+	}
+	if *linkSearchDepth == 0{
+		panic("Depth not provided")
+	}
 
 	// Create a new ParserXtractor
 	xtr := links.NewParserXtractor()
@@ -42,8 +47,8 @@ func main() {
 	// Create a Time variable using the time package and record the time
 	t1 = time.Now()
 	// Run the Crawl function and print the length of the Crawled output and the time taken
-	linkMap, _ := dfs.Crawl(*flagUrl, *linkSearchDepth, xtr)
+	linkMap, err := dfs.Crawl(*flagUrl, *linkSearchDepth, xtr)
 	sitesCrawled = len(linkMap)
 	d := time.Since(t1)
-	fmt.Printf("Time taken: %f\nLength of output: %d\n", d.Seconds(), sitesCrawled)
+	fmt.Printf("Crawled: %d time taken: %f err: %s\n", sitesCrawled, d.Seconds(), err)
 }
