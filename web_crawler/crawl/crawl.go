@@ -5,7 +5,6 @@ import (
 	"p2b/web_crawler/links"
 	"net/http"
 	"time"
-	"net"
 )
 
 type Crawler interface {
