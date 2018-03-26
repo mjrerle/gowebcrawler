@@ -24,16 +24,24 @@ func getPrefStr(forDepth int) string {
 
 type dfsCrawler struct {
 	hcli http.Client
+	maxDepth int
 }
 
-func NewDfsCrawler(timeoutsec uint) *dfsCrawler {
-	tdur := time.Duration(time.Duration(timeoutsec) * time.Second)
-
+func NewDfsCrawler(timeoutsec uint, depth int) *dfsCrawler {
+	timeout := time.Duration(timeoutsec) * time.Second
 	return &dfsCrawler{
 		hcli: http.Client{
-			Timeout: tdur,
+			Timeout: timeout,
 			},
+			maxDepth: depth,
 	}
+}
+
+type results struct{
+	url string
+	urls links.Links
+	err error
+	depth int
 }
 
 func getLinksFromBody(from string, hcli http.Client, xtr links.Xtractor) (links links.Links, err error) {
@@ -52,33 +60,26 @@ func getLinksFromBody(from string, hcli http.Client, xtr links.Xtractor) (links 
 
 }
 func (c *dfsCrawler) Crawl(url string, depth int, xtr links.Xtractor) (map[string]bool, error) {
-	var (
-		err     error
-	)
+	var err error
 	//create a map to store all the links extracted from one url.
 	fetched := make(map[string]bool)
 
-	if depth > 0 {
-		if fetched[url] != true{
+	if depth > 1 {
+		//_, ok := fetched[url]
+		if !fetched[url]{
 			urls, err := getLinksFromBody(url, c.hcli, xtr)
-			fetched[url] = true
-			fmt.Printf("%s %s\n", getPrefStr(depth), url)
-
 			if err != nil{
 				fmt.Println("error: failed to crawl "+url+"")
-
-			} else {
-				for _, u := range urls{
-					c.Crawl(u.String(), depth - 1, xtr)
-					fetched[u.String()] = true
-				}
+			}
+			for _, u := range urls{
+				fmt.Printf("%s %s\n", getPrefStr((c.maxDepth+1) - depth), u.String())
+				c.Crawl(u.String(), depth - 1, xtr)
+				fetched[u.String()] = true
 			}
 		}
 	}
-
+	return fetched, err
 	//get links from body using the function getLinksFromBody() defined above.
 	// Using recursion or go routines, implement the depth first search.
 
-
-	return fetched, err
 }

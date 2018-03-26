@@ -22,7 +22,7 @@ func init() {
 	// Import as explained here
 	flagUrl = ""
 	linkSearchDepth = 0
-	flagTimeoutSecs = 100
+	flagTimeoutSecs = 5
 	sitesCrawled = 0
 	t1 = time.Now()
 }
@@ -43,12 +43,12 @@ func main() {
 	// Create a new ParserXtractor
 	xtr := links.NewParserXtractor()
 	// Create a new DFS Crawler
-	dfs := crawl.NewDfsCrawler(*flagTimeoutSecs)
+	dfs := crawl.NewDfsCrawler(*flagTimeoutSecs, *linkSearchDepth)
 	// Create a Time variable using the time package and record the time
 	t1 = time.Now()
 	// Run the Crawl function and print the length of the Crawled output and the time taken
+	fmt.Println(*flagUrl)
 	linkMap, err := dfs.Crawl(*flagUrl, *linkSearchDepth, xtr)
-	sitesCrawled = len(linkMap)
 	d := time.Since(t1)
-	fmt.Printf("Crawled: %d time taken: %f err: %s\n", sitesCrawled, d.Seconds(), err)
+	fmt.Printf("Crawled: %d time taken: %f err: %#v\n", len(linkMap), d.Seconds(), err)
 }
